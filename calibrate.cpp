@@ -45,7 +45,7 @@ class value_history {
 };
 
 
-void find_min_start(fancontroller * fc, int samples, int interval) {
+static void find_min_start(fancontroller * fc, int samples, int interval) {
   long pwm;
 
   std::cout << "Stopping fan" << std::endl;
@@ -93,7 +93,7 @@ void find_min_start(fancontroller * fc, int samples, int interval) {
 
 
 // min_stop, min_speed, and min_temp (informative)
-void find_min_stop_min_speed_min_temp(fancontroller * fc,
+static void find_min_stop_min_speed_min_temp(fancontroller * fc,
                                       int samples,
                                       int interval,
                                       double precision) {
@@ -160,7 +160,7 @@ void find_min_stop_min_speed_min_temp(fancontroller * fc,
   }
 }
 
-void calibrate(fancontroller * fc,
+static void calibrate(fancontroller * fc,
     int samples, int interval, double precision) {
   find_min_stop_min_speed_min_temp(fc, samples, interval, precision);
   find_min_start(fc, samples, interval);

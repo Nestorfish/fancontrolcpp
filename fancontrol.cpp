@@ -4,8 +4,9 @@
 #include <stdexcept>
 #include <iostream>
 #include <string>
+#include <boost/program_options.hpp>
+
 #include "lib/fancontroller.h"
-#include "boost/program_options.hpp"
 
 /*
  * TODO:
@@ -183,7 +184,7 @@ static void update(fancontroller * fc, const pwm_computer * compute) {
   fc->set_fan_pwm(new_pwm);
 }
 
-bpo::variables_map parse_parameters(int argc, char **argv) {
+static bpo::variables_map parse_parameters(int argc, char **argv) {
   std::string conf_file("/etc/fancontrol_cpp");
 
   bpo::variables_map parameters;

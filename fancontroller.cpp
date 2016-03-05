@@ -1,11 +1,12 @@
 #include "lib/fancontroller.h"
+
 #include <unistd.h>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <cmath>
 
 /*
  * TODO:
