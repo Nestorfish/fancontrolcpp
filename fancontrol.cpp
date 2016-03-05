@@ -28,9 +28,6 @@ static void signal_handler(int signum) {
   }
 }
 
-//typedef long (*pwm_computer)(const fancontroller &fc, long temp);
-
-
 class pwm_computer {
  public:
   explicit pwm_computer(const fancontroller &fc);
@@ -93,49 +90,6 @@ long quadratic_pwm_computer::calculate(long temperature) const {
     + b * static_cast<long double>(temperature)
     + c);
 }
-
-//long linear_polynomial_pwm(const fancontroller &fc, long temp) {
-//  if (temp <= fc.get_min_temp())
-//    return fc.get_min_pwm();
-//  else if (temp >= fc.get_max_temp())
-//    return fc.get_max_pwm();
-//  else
-//    return fc.get_min_stop() +
-//            (fc.get_max_pwm() - fc.get_min_stop()) *
-//            (temp - fc.get_min_temp()) /
-//            (fc.get_max_temp() - fc.get_min_temp());
-//}
-//
-//long quadratic_polynomial_pwm(const fancontroller &fc, long temp) {
-//  // temp -> A * temp**2 + B * temp + C
-//  // having:
-//  //   min_temp -> min_stop
-//  //   derivate min_temp -> 0
-//  //   max_temp -> max_pwm
-//  static const long double A =
-//    static_cast<long double>(fc.get_max_pwm() - fc.get_min_stop()) /
-//    pow(static_cast<long double>(fc.get_max_temp() - fc.get_min_temp()), 2.0L);
-//  static const long double B =
-//    -2.0L * static_cast<long double>(fc.get_min_temp()) * A;
-//  static const long double C = (
-//      static_cast<long double>(fc.get_min_stop()) +
-//      static_cast<long double>(fc.get_max_pwm()) +
-//      A * (
-//        pow(
-//          (static_cast<long double>(fc.get_min_temp()) +
-//           static_cast<long double>(fc.get_max_temp()))
-//          , 2.0L) -
-//        2.0L * pow(static_cast<long double>(fc.get_max_temp()), 2.0L)
-//      )
-//    ) / 2.0L;
-//
-//  if (temp < fc.get_min_temp())
-//    return fc.get_min_pwm();
-//  else if (temp >= fc.get_max_temp())
-//    return fc.get_max_pwm();
-//  else
-//    return static_cast<long>(A * pow(static_cast<long double>(temp), 2.0L) + B * static_cast<long double>(temp) + C);
-//}
 
 static void update(fancontroller * fc, const pwm_computer * compute) {
   long temp  = fc->read_temperature();
