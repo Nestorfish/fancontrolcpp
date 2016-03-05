@@ -11,6 +11,7 @@
 /*
  * TODO:
  * Daemonize
+ * Check/implement hysteresis for fan stop/start on low temperatures
  */
 
 namespace bpo = boost::program_options;
