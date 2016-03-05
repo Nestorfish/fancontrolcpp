@@ -1,30 +1,35 @@
-CC      = g++
-CFLAGS  = -std=gnu++11 -g -Wall -Wextra -pedantic -O2
-LDFLAGS = -lboost_program_options
-SBIN     = $(DESTDIR)/usr/sbin
+export LC_ALL = C
+CXXFLAGS = -std=gnu++14 -g -Wall -Wextra -pedantic -O2
+LDFLAGS = -Wl,--as-needed
+LDLIBS = -lboost_program_options
+LINK.o = $(LINK.cc)
+SBIN = $(DESTDIR)/usr/sbin
 
 all: fancontrolcpp calibrate-fancontrolcpp
 
+debug: CXXFLAGS += -DDEBUG -DMY_DEBUG
+debug: all
+
 calibrate-fancontrolcpp: calibrate.o fancontroller.o
-	$(CC) -o $@ $^ $(LDFLAGS)
-	objcopy --only-keep-debug $@ $@-dbg
-	strip --strip-debug --strip-unneeded $@
-	objcopy --add-gnu-debuglink=$@-dbg $@
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@ && \
+		objcopy --only-keep-debug $@ $@-dbg && \
+		strip --strip-debug --strip-unneeded $@ && \
+		objcopy --add-gnu-debuglink=$@-dbg $@
 
 fancontrolcpp: fancontrol.o fancontroller.o
-	$(CC) -o $@ $^ $(LDFLAGS)
-	objcopy --only-keep-debug $@ $@-dbg
-	strip --strip-debug --strip-unneeded $@
-	objcopy --add-gnu-debuglink=$@-dbg $@
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@ && \
+		objcopy --only-keep-debug $@ $@-dbg && \
+		strip --strip-debug --strip-unneeded $@ && \
+		objcopy --add-gnu-debuglink=$@-dbg $@
 
 calibrate.o: calibrate.cpp lib/fancontroller.h
-	$(CC) -c $(CFLAGS) $<
 
 fancontrol.o: fancontrol.cpp lib/fancontroller.h
-	$(CC) -c $(CFLAGS) $<
 
 fancontroller.o: fancontroller.cpp lib/fancontroller.h
-	$(CC) -c $(CFLAGS) $<
+
+
+.PHONY: install uninstall clean cleanest
 
 install: all
 	install -d $(SBIN)
@@ -32,12 +37,10 @@ install: all
 	install ./calibrate-fancontrolcpp $(SBIN)
 
 uninstall:
-	rm $(SBIN)/fancontrolcpp $(SBIN)/calibrate-fancontrolcpp
-
-.PHONY: clean cleanest
+	rm -f $(SBIN)/fancontrolcpp $(SBIN)/calibrate-fancontrolcpp
 
 clean:
 	rm -f *.o
 
-distclean: clean
+cleanest: clean
 	rm -f fancontrolcpp fancontrolcpp-dbg calibrate-fancontrolcpp calibrate-fancontrolcpp-dbg
