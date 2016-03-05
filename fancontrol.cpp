@@ -92,10 +92,15 @@ long quadratic_pwm_computer::calculate(long temperature) const {
     + c);
 }
 
-static void update(fancontroller * fc, const pwm_computer * compute) {
+static void update(fancontroller * fc, const pwm_computer * compute, const long temp_hyst) {
   long temp  = fc->read_temperature();
   long cur_pwm = fc->read_fan_pwm();
   long cur_fan_speed = fc->read_fan_speed();
+
+  // Hysteresis
+  if (!cur_fan_speed) {
+    temp -= temp_hyst;
+  }
 
   // Compute regular new PWM value
   long computed_pwm = compute->pwm_for(temp);
@@ -122,14 +127,16 @@ static void update(fancontroller * fc, const pwm_computer * compute) {
   std::cout << ", Filtered: " << new_pwm;
 #endif
 
-  // Ensure fan start if necessary
+  // Would not start; zero value, but increase up_step to avoid staying for too long stopped if it should be normally running
   if (!cur_fan_speed && new_pwm < fc->get_min_stop()) {
     new_pwm = 0;
-    up_step *= 2;  // Because new_pwm will not be applied but reset to 0
+    up_step *= 2;
 #if defined(MY_DEBUG)
     std::cout << ", Zeroed";
 #endif
   }
+
+  // Ensure fan start if necessary
   if (new_pwm && !cur_fan_speed) {
     std::cout << "Starting fan" << std::endl;
     fc->start_fan();
@@ -178,6 +185,8 @@ static bpo::variables_map parse_parameters(int argc, char **argv) {
        "Minimum temperature for PWM adjusting function")
     ("max_temp", bpo::value<long>()->required(),
        "Maximum temperature for PWM adjusting function")
+    ("temp_hyst", bpo::value<long>()->required(),
+       "Temperature hysteresis for fan stop/start")
     ("min_start", bpo::value<long>()->required(),
        "Minimum PWM value to start fan rotation when stopped")
     ("min_stop", bpo::value<long>()->required(),
@@ -214,6 +223,7 @@ int main(int argc, char ** argv) {
   bpo::variables_map parameters = parse_parameters(argc, argv);
 
   unsigned int poll_interval = parameters["poll_interval"].as<unsigned int>();
+  long temp_hyst = parameters["temp_hyst"].as<long>();
 
   fancontroller fc(parameters["pwm_ctrl"].as<std::string>(),
                    parameters["fan_sensor"].as<std::string>(),
@@ -254,7 +264,7 @@ int main(int argc, char ** argv) {
                 << "  Fan speed: " << fc.read_fan_speed()
                 << "  PWM value: " << fc.read_fan_pwm()
                 << std::endl;
-      update(&fc, pwm_computer_f);
+      update(&fc, pwm_computer_f, temp_hyst);
     } while (!sleep(poll_interval) && !sigint);
   } catch (const std::runtime_error & e) {
     std::cerr << "Got error with update()!" << std::endl;
