@@ -33,7 +33,7 @@ class pwm_computer {
   explicit pwm_computer(const fancontroller &fc);
   virtual ~pwm_computer() {}
   long pwm_for(long temperature) const;
-  virtual long calculate(long temperature) const =0;
+  virtual long calculate(long temperature) const = 0;
  protected:
   const long double min_temperature, max_temperature,
                     min_pwm, min_stop, max_pwm;
@@ -55,7 +55,7 @@ long pwm_computer::pwm_for(long temperature) const {
 
 class linear_pwm_computer : public pwm_computer {
  public:
-  linear_pwm_computer(const fancontroller &fc);
+  explicit linear_pwm_computer(const fancontroller &fc);
   ~linear_pwm_computer() {}
   long calculate(long temperature) const;
  private:
@@ -71,7 +71,7 @@ long linear_pwm_computer::calculate(long temperature) const {
 
 class quadratic_pwm_computer : public pwm_computer {
  public:
-  quadratic_pwm_computer(const fancontroller &fc);
+  explicit quadratic_pwm_computer(const fancontroller &fc);
   ~quadratic_pwm_computer() {}
   long calculate(long temperature) const;
  private:
