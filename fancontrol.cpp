@@ -34,6 +34,7 @@ static void signal_handler(int signum) {
 class pwm_computer {
  public:
   explicit pwm_computer(const fancontroller &fc);
+  virtual ~pwm_computer() {}
   long pwm_for(long temperature) const;
   virtual long calculate(long temperature) const =0;
  protected:
@@ -58,6 +59,7 @@ long pwm_computer::pwm_for(long temperature) const {
 class linear_pwm_computer : public pwm_computer {
  public:
   linear_pwm_computer(const fancontroller &fc);
+  ~linear_pwm_computer() {}
   long calculate(long temperature) const;
  private:
   const long double a, b;
@@ -73,6 +75,7 @@ long linear_pwm_computer::calculate(long temperature) const {
 class quadratic_pwm_computer : public pwm_computer {
  public:
   quadratic_pwm_computer(const fancontroller &fc);
+  ~quadratic_pwm_computer() {}
   long calculate(long temperature) const;
  private:
   const long double a, b, c;
@@ -303,10 +306,12 @@ int main(int argc, char ** argv) {
     std::cerr << e.what();
     std::cerr << "Restoring fan max speed" << std::endl;
     fc.set_full_speed();
+    delete pwm_computer_f;
     return 1;
   }
 
   std::cerr << "Leaving." << std::endl;
+  delete pwm_computer_f;
 
   return 0;
 }
