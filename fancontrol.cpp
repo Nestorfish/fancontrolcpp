@@ -6,6 +6,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 
+#include "lib/pidfile.h"
 #include "lib/fancontroller.h"
 
 /*
@@ -220,6 +221,8 @@ static bpo::variables_map parse_parameters(int argc, char **argv) {
 }
 
 int main(int argc, char ** argv) {
+  pidfile pidfile("/run/fancontrolcpp.pid");
+
   bpo::variables_map parameters = parse_parameters(argc, argv);
 
   unsigned int poll_interval = parameters["poll_interval"].as<unsigned int>();
@@ -277,6 +280,5 @@ int main(int argc, char ** argv) {
 
   std::cerr << "Leaving." << std::endl;
   delete pwm_computer_f;
-
   return 0;
 }

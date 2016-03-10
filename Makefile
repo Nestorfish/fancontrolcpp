@@ -1,7 +1,7 @@
 export LC_ALL = C
 CXXFLAGS = -std=gnu++14 -g -Wall -Wextra -pedantic -O2
 LDFLAGS = -Wl,--as-needed
-LDLIBS = -lboost_program_options
+LDLIBS = -lboost_system -lboost_filesystem -lboost_program_options
 LINK.o = $(LINK.cc)
 SBIN = $(DESTDIR)/usr/sbin
 
@@ -16,7 +16,7 @@ calibrate-fancontrolcpp: calibrate.o fancontroller.o
 		strip --strip-debug --strip-unneeded $@ && \
 		objcopy --add-gnu-debuglink=$@-dbg $@
 
-fancontrolcpp: fancontrol.o fancontroller.o
+fancontrolcpp: fancontrol.o fancontroller.o pidfile.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@ && \
 		objcopy --only-keep-debug $@ $@-dbg && \
 		strip --strip-debug --strip-unneeded $@ && \
@@ -27,6 +27,8 @@ calibrate.o: calibrate.cpp lib/fancontroller.h
 fancontrol.o: fancontrol.cpp lib/fancontroller.h
 
 fancontroller.o: fancontroller.cpp lib/fancontroller.h
+
+pidfile.o: pidfile.cpp lib/pidfile.h
 
 
 .PHONY: install uninstall clean cleanest
