@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <systemd/sd-daemon.h>
 #include <csignal>
 #include <cmath>
 #include <stdexcept>
@@ -17,15 +18,23 @@
 
 namespace bpo = boost::program_options;
 
-static bool sigint = false;
+static bool shutdown_request = false;
+static bool verbose = false;
+
 static void signal_handler(int signum) {
   switch (signum) {
     case SIGINT:
-      if (sigint) {
+    case SIGTERM:
+      if (shutdown_request) {
+        sd_notify(0, "STATUS=Shutting down\n"
+            "STOPPING=1");
         exit(0);
       } else {
-        sigint = true;
+        shutdown_request = true;
       }
+      break;
+    case SIGHUP:
+      // Should reload conf...
       break;
   }
 }
@@ -159,7 +168,7 @@ static bpo::variables_map parse_parameters(int argc, char **argv) {
   cli_desc.add_options()
     ("help,h", "Print this help")
     ("help-conf", "Print configuration file help")
-    ("foreground,F", "Stay in foreground")
+    ("verbose,v", "Verbose mode")
     ("config-file,c", bpo::value<std::string>(&conf_file),
        "Path to configuration file");
   try {
@@ -167,6 +176,9 @@ static bpo::variables_map parse_parameters(int argc, char **argv) {
     bpo::notify(parameters);
   } catch (bpo::error & e) {
     std::cerr << e.what() << "\n" << cli_desc << std::endl;
+    sd_notifyf(0, "STATUS=Failed to parse command-line parameters: %s\n"
+        "STOPPING=1",
+        e.what());
     exit(1);
   }
 
@@ -205,16 +217,26 @@ static bpo::variables_map parse_parameters(int argc, char **argv) {
     bpo::notify(parameters);
   } catch (bpo::error & e) {
     std::cerr << e.what() << "\n" << file_desc << std::endl;
+    sd_notifyf(0, "STATUS=Failed to parse configuration file: %s\n"
+        "STOPPING=1",
+        e.what());
     exit(1);
   }
 
   if (parameters.count("help")) {
     std::cout << cli_desc << std::endl;
+    sd_notify(0, "STATUS=Shutting down\n"
+        "STOPPING=1");
     exit(0);
   }
   if (parameters.count("help-conf")) {
     std::cout << file_desc << std::endl;
+    sd_notify(0, "STATUS=Shutting down\n"
+        "STOPPING=1");
     exit(0);
+  }
+  if (parameters.count("verbose")) {
+    verbose = true;
   }
 
   return parameters;
@@ -241,12 +263,14 @@ int main(int argc, char ** argv) {
 
   pwm_computer * pwm_computer_f;
   if (parameters["pwm_algorithm"].as<std::string>() == "linear") {
-      pwm_computer_f = new linear_pwm_computer(fc);
+    pwm_computer_f = new linear_pwm_computer(fc);
   } else if (parameters["pwm_algorithm"].as<std::string>() == "quadratic") {
-      pwm_computer_f = new quadratic_pwm_computer(fc);
+    pwm_computer_f = new quadratic_pwm_computer(fc);
   } else {
-      std::cerr << "Unknown PWM algorithm!" << std::endl;
-      exit(1);
+    sd_notify(0, "STATUS=Failed to start up: Unknown PWM algorithm!\n"
+        "STOPPING=1");
+    std::cerr << "Unknown PWM algorithm!" << std::endl;
+    exit(1);
   }
 
 #if defined(MY_DEBUG)
@@ -260,18 +284,29 @@ int main(int argc, char ** argv) {
 #endif
 
   std::signal(SIGINT, signal_handler);
+  std::signal(SIGTERM, signal_handler);
+  std::signal(SIGHUP, signal_handler);
+
+  sd_notifyf(0, "READY=1\n"
+      "STATUS=Entering control loop...\n"
+      "MAINPID=%lu",
+      (unsigned long) pidfile.get_pid());
 
   try {
     do {
-      std::cout << "Temperature: " << fc.read_temperature()
-                << "  Fan speed: " << fc.read_fan_speed()
-                << "  PWM value: " << fc.read_fan_pwm()
-                << std::endl;
+      if (verbose) {
+        std::cout << "Temperature: " << fc.read_temperature()
+                  << "  Fan speed: " << fc.read_fan_speed()
+                  << "  PWM value: " << fc.read_fan_pwm()
+                  << std::endl;
+      }
       update(&fc, pwm_computer_f, temp_hyst);
-    } while (!sleep(poll_interval) && !sigint);
+    } while (!sleep(poll_interval) && !shutdown_request);
   } catch (const std::runtime_error & e) {
     std::cerr << "Got error with update()!" << std::endl;
     std::cerr << e.what();
+    sd_notify(0, "STATUS=Got error with update()!\n"
+        "STOPPING=1");
     std::cerr << "Restoring fan max speed" << std::endl;
     fc.set_full_speed();
     delete pwm_computer_f;
@@ -280,5 +315,7 @@ int main(int argc, char ** argv) {
 
   std::cerr << "Leaving." << std::endl;
   delete pwm_computer_f;
+  sd_notify(0, "STATUS=Shutting down\n"
+      "STOPPING=1");
   return 0;
 }

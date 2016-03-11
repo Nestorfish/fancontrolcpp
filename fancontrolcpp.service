@@ -1,0 +1,9 @@
+[Unit]
+Description=Fancontrol CPP
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/fancontrolcpp
+
+[Install]
+WantedBy=multi-user.target

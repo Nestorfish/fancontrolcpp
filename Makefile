@@ -1,9 +1,10 @@
 export LC_ALL = C
 CXXFLAGS = -std=gnu++14 -g -Wall -Wextra -pedantic -O2
 LDFLAGS = -Wl,--as-needed
-LDLIBS = -lboost_system -lboost_filesystem -lboost_program_options
+LDLIBS = -lsystemd -lboost_system -lboost_filesystem -lboost_program_options
 LINK.o = $(LINK.cc)
 SBIN = $(DESTDIR)/usr/sbin
+SYSTEMD = $(DESTDIR)/lib/systemd/system
 
 all: fancontrolcpp calibrate-fancontrolcpp
 
@@ -37,6 +38,8 @@ install: all
 	install -d $(SBIN)
 	install ./fancontrolcpp $(SBIN)
 	install ./calibrate-fancontrolcpp $(SBIN)
+	install -d $(SYSTEMD)
+	install -m 644 ./fancontrolcpp.service $(SYSTEMD)
 
 uninstall:
 	rm -f $(SBIN)/fancontrolcpp $(SBIN)/calibrate-fancontrolcpp

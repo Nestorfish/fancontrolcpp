@@ -12,7 +12,7 @@ namespace bfs = boost::filesystem;
 pidfile::pidfile(bfs::path pid_filepath)
   : pid_filepath(pid_filepath)
 {
-  pid_t pid = getpid();
+  pid = getpid();
   if (bfs::exists(pid_filepath)) {
     pid_t old_pid;
     bfs::ifstream(pid_filepath) >> old_pid;
@@ -35,4 +35,8 @@ pidfile::pidfile(bfs::path pid_filepath)
 
 pidfile::~pidfile() {
   bfs::remove(pid_filepath);
+}
+
+pid_t pidfile::get_pid() const {
+  return pid;
 }
