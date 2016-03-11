@@ -1,0 +1,20 @@
+#pwm1 => fan1/cpu_1
+#pwm2 => fan2/sys_2
+#pwm3 => fan4/sys_1
+
+poll_interval=2
+
+#cpu
+pwm_algorithm=quadratic
+pwm_ctrl=/sys/devices/platform/it87.656/pwm1
+fan_sensor=/sys/devices/platform/it87.656/fan1_input
+temp_sensor=/sys/devices/platform/it87.656/temp3_input
+min_temp=30000
+max_temp=65000
+temp_hyst=2500
+# fan speed increases below ~125 to reach another local maximum @100. Will really stop under 90.
+min_start=128
+min_stop=128
+min_speed=650
+min_pwm=0
+max_pwm=254
