@@ -5,16 +5,31 @@
 poll_interval=2
 
 #cpu
-pwm_algorithm=quadratic
-pwm_ctrl=/sys/devices/platform/it87.656/pwm1
-fan_sensor=/sys/devices/platform/it87.656/fan1_input
-temp_sensor=/sys/devices/platform/it87.656/temp3_input
-min_temp=30000
-max_temp=65000
-temp_hyst=2500
+pwm_algorithm1=quadratic
+pwm_ctrl1=/sys/devices/platform/it87.656/pwm1
+fan_sensor1=/sys/devices/platform/it87.656/fan1_input
+temp_sensor1=/sys/devices/platform/it87.656/temp3_input
+min_temp1=30000
+max_temp1=65000
+temp_hyst1=2500
 # fan speed increases below ~125 to reach another local maximum @100. Will really stop under 90.
-min_start=128
-min_stop=128
-min_speed=650
-min_pwm=0
-max_pwm=254
+min_start1=128
+min_stop1=128
+min_speed1=650
+min_pwm1=0
+max_pwm1=254
+
+#chassis
+pwm_algorithm2=quadratic
+pwm_ctrl2=/sys/devices/platform/it87.656/pwm2
+fan_sensor2=/sys/devices/platform/it87.656/fan2_input
+temp_sensor2=/sys/devices/platform/it87.656/temp3_input
+min_temp2=30000
+max_temp2=65000
+temp_hyst2=2500
+# Drop under 86, stop under 84. Starts well @90
+min_start2=100
+min_stop2=90
+min_speed2=700
+min_pwm2=90
+max_pwm2=254

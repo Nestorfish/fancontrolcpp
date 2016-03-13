@@ -55,5 +55,7 @@ class fancontroller {
   void set_full_speed();
   void start_fan();
   void stop_fan();
+
+  long up_step;  // TODO: find a better place for this... Put there to avoid static bug in update();
 };
 #endif  // LIB_FANCONTROLLER_H_

@@ -25,7 +25,8 @@ fancontroller::fancontroller(const std::string &controller,
     min_temp(min_temp), max_temp(max_temp),
     min_start(min_start), min_stop(min_stop), min_speed(min_speed),
     min_pwm(min_pwm), max_pwm(max_pwm),
-    controller_enabler(controller + "_enable") {
+    controller_enabler(controller + "_enable"),
+    up_step(0) {
   if (std::ofstream(controller.c_str()).fail())
     throw std::runtime_error("Could not open PWM device!");
   if (std::ifstream(fan_sensor.c_str()).fail())
